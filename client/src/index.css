@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f8f9fa;
+}
+
+input {
+  outline: none;
+}
+.bg-linear-gradient {
+  background-image: linear-gradient(to top left, #7928ca, #ff0080);
+}
+.add-btn {
+  background: linear-gradient(to top left, #141727, #3a416f);
+}
+
+.logo svg {
+  @apply w-[180px] max-[400px]:w-[160px];
+}
+
+.menu svg {
+  @apply w-8 max-[400px]:w-7;
+}
+
+.delete svg {
+  @apply stroke-red-500;
+}
+
+.edit svg {
+  @apply stroke-blue-500;
+}
+
+.notification {
+  /* border-left: 2px solid #ef4444; */
+  animation: slide-in 0.2s linear forwards;
+  /* overflow: hidden; */
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.notification::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 0;
+  width: 2px;
+  animation: fillHeight 0.5s linear forwards;
+}
+
+.notification::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2.5px;
+  width: 0;
+  animation: fillWidth 1s linear 0.5s forwards;
+}
+
+.right-side {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 2.5px;
+  height: 0;
+  animation: fillHeight 0.5s linear 1.5s forwards;
+}
+
+.top-side {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 2px;
+  width: 0;
+  animation: fillWidth 1s linear 2s forwards;
+}
+
+@keyframes fillHeight {
+  from {
+    height: 0;
+  }
+  to {
+    height: 100%;
+  }
+}
+
+@keyframes fillWidth {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
