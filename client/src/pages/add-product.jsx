@@ -1,11 +1,12 @@
 import { Form, FormWrapper, Input, Select } from "../components/Form";
 import TitleMenu from "../components/title-menu";
-import { changeEventHandler, clearStateHandler, setImg } from "../store/productSlice";
+import { changeEventHandler, clearStateHandler } from "../store/productSlice";
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { productError } from "../components/Errors";
+import Uploads from "../components/Uploads";
 
 const AddProduct = () => {
   const location = useLocation();
@@ -19,10 +20,7 @@ const AddProduct = () => {
   const { title, quantity, img, purchase_price, sell_price, supplier } = useSelector(
     (state) => state.product
   );
-
   const [message, setMessage] = useState("");
-  const [file, setFile] = useState(null);
-  const fileRef = useRef(null);
 
   useEffect(() => {
     getAllSuppliers();
@@ -69,37 +67,6 @@ const AddProduct = () => {
     dispatch(changeEventHandler({ name: fieldname, value }));
   };
 
-  const handleFileChange = async (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    if (selectedFile) {
-      dispatch(setImg({ imgUrl: URL.createObjectURL(selectedFile) }));
-      const data = new FormData();
-      data.append("file", selectedFile);
-      try {
-        const uploadImg = await axios.post("/api/upload-img", data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-        const imgUrl = uploadImg.data.filePath;
-        dispatch(setFile({ imgUrl: imgUrl }));
-        console.log(imgUrl);
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  };
-
-  const selectFileFromLSHandler = () => {
-    fileRef.current?.click();
-  };
-
-  const removeImgHandler = (e) => {
-    e.preventDefault();
-    dispatch(setImg({ imgUrl: "" }))
-  }
-
   return (
     <FormWrapper>
       <TitleMenu pageType="products" pageName={path} href="/products" />
@@ -118,57 +85,7 @@ const AddProduct = () => {
             changeInputHandler={changeInputHandler}
           />
         </div>
-
-        <div className="min-h-32 border rounded-md mb-3 flex flex-col justify-center items-center gap-2 text-[15px] py-5 px-3">
-          {!img ? (
-            <div>
-              Drop file to attach or
-              <span
-                className="text-blue-600 ml-1 cursor-pointer"
-                onClick={selectFileFromLSHandler}
-              >
-                browse
-              </span>
-              <input
-                type="file"
-                className="hidden"
-                name="file"
-                ref={fileRef}
-                onChange={handleFileChange}
-              />
-            </div>
-          ) : (
-            <>
-              <img className="h-32" src={img} alt="" />
-              <div className="flex items-center gap-2 ml-auto">
-                <div>
-                  <button
-                    className="capitalize text-sm py-1.5 px-6 bg-gray-100 rounded"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      selectFileFromLSHandler();
-                    }}
-                  >
-                    edit
-                  </button>
-                  <input
-                    type="file"
-                    className="hidden"
-                    name="file"
-                    ref={fileRef}
-                    onChange={handleFileChange}
-                  />
-                </div>
-                <button
-                  className="capitalize text-sm py-1.5 px-3 bg-gray-100 rounded"
-                  onClick={removeImgHandler}
-                >
-                  Remove
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+        <Uploads />
         <div className="flex items-center gap-3">
           <Input
             placeholder="Purchase Price"
