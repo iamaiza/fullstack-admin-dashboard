@@ -9,34 +9,31 @@ import {
   Wrapper,
 } from "../components/Table";
 import TitleMenu from "../components/title-menu";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Notification from "../components/Notification";
 import { setMessage, setType } from "../store/notificationSlice";
 import { changeEventHandler } from "../store/supplierSlice";
+import { useMutation, useQuery } from "@apollo/client";
+import { DELETE_SUPPLIER, SUPPLIERS } from "../query";
 
 const Suppliers = () => {
   const location = useLocation();
   const pathname = location?.pathname;
   const path = pathname.slice(1);
   const navigate = useNavigate();
-  const [suppliers, setSuppliers] = useState([]);
   const { message, type } = useSelector((state) => state.notification);
   const { search } = useSelector((state) => state.supplier);
   const dispatch = useDispatch();
+  const { data } = useQuery(SUPPLIERS);
+  const [suppliers, setSuppliers] = useState([]);
+  const [deleteSupplierMutation] = useMutation(DELETE_SUPPLIER);
 
   useEffect(() => {
-    getAllSuppliersHandler();
-  }, []);
-
-  const getAllSuppliersHandler = async () => {
-    const res = await axios.get("/api/suppliers");
-    const data = await res.data;
-    console.log(data);
-
-    setSuppliers(data);
-  };
+    if (data?.suppliers) {
+      setSuppliers(data.suppliers);
+    }
+  }, [data?.suppliers]);
 
   const clickHandler = (e) => {
     e.preventDefault();
@@ -45,16 +42,19 @@ const Suppliers = () => {
 
   const deleteSupplierHandler = async (id) => {
     try {
-      const res = await axios.delete(`/api/delete-supplier/${id}`);
-      if (res.status === 200) {
-        console.log(res.data);
-        setSuppliers(suppliers.filter((el) => el.id !== id));
-        dispatch(setType({ type: "success" }));
-        dispatch(setMessage({ message: "Supplier deleted successfully" }));
-      } else {
+      const { data } = await deleteSupplierMutation({
+        variables: {
+          id,
+        },
+      });
+      if (data.deletedSupplier?.message) {
         dispatch(setType({ type: "error" }));
-        dispatch(setMessage({ message: res.data?.message }));
+        dispatch(setMessage({ message: data.deletedSupplier.message }));
       }
+      setSuppliers(suppliers.filter((el) => el.id !== id));
+      dispatch(setType({ type: "success" }));
+      dispatch(setMessage({ message: "Supplier deleted successfully" }));
+
     } catch (error) {
       console.log(error);
       dispatch(setType({ type: "error" }));
@@ -97,14 +97,14 @@ const Suppliers = () => {
                       : usr.name.toLowerCase().includes(search.toLowerCase())
                   )
                   .map((usr) => (
-                    <tr className="border-b last:border-0" key={usr?.id}>
-                      <TableData data={usr?.id} />
-                      <TableData data={usr?.name} />
-                      <TableData data={usr?.address} />
-                      <TableData data={usr?.phone} />
+                    <tr className="border-b last:border-0" key={usr.id}>
+                      <TableData data={usr.id} />
+                      <TableData data={usr.name} />
+                      <TableData data={usr.address} />
+                      <TableData data={usr.phone} />
                       <TableActions
-                        href={`/update-supplier?id=${usr?.id}`}
-                        id={usr?.id}
+                        href={`/update-supplier?id=${usr.id}`}
+                        id={usr.id}
                         deleteHandler={deleteSupplierHandler}
                       />
                     </tr>

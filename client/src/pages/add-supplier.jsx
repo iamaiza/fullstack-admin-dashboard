@@ -2,10 +2,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Form, FormWrapper, Input } from "../components/Form";
 import TitleMenu from "../components/title-menu";
 import { changeEventHandler, clearStateHandler } from "../store/supplierSlice";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { supplierError } from "../components/Errors";
 import { useEffect, useState } from "react";
+import { useMutation } from "@apollo/client";
+import { CREATE_SUPPLIER, SUPPLIERS } from "../query";
 
 const AddSupplier = () => {
   const location = useLocation();
@@ -17,6 +18,9 @@ const AddSupplier = () => {
 
   const { username, address, phone } = useSelector((state) => state.supplier);
   const [message, setMessage] = useState("");
+  const [createSupplierMutation] = useMutation(CREATE_SUPPLIER, {
+    refetchQueries: [{ query: SUPPLIERS }]
+  });
 
   useEffect(() => {
     dispatch(clearStateHandler());
@@ -33,19 +37,19 @@ const AddSupplier = () => {
       });
       if (error) return;
 
-      const res = await axios.post("/api/add-supplier", {
-        name: username,
-        address,
-        phone,
+      const { data } = await createSupplierMutation({
+        variables: {
+          data: {
+            name: username,
+            address,
+            phone,
+          },
+        },
       });
-      if (res.data?.message) {
-        setMessage(res.data.message);
+      if (data.createSupplier?.message) {
+        setMessage(data.createSupplier.message);
       }
-        if (res.status === 200) {
-          navigate("/suppliers");
-          // dispatch(clearStateHandler());
-        }
-      
+      navigate("/suppliers");
     } catch (error) {
       console.log(error);
     }
