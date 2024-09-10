@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Notification from "../components/Notification";
 import { setMessage, setType } from "../store/notificationSlice";
 import { changeEventHandler } from "../store/orderSlice";
+import { useMutation, useQuery } from "@apollo/client";
+import { DELETE_ORDER, ORDERS } from "../query";
 
 const Orders = () => {
   const location = useLocation();
@@ -25,19 +27,26 @@ const Orders = () => {
   const dispatch = useDispatch();
   const { message, type } = useSelector((state) => state.notification);
   const { search } = useSelector((state) => state.order);
+  const { data } = useQuery(ORDERS);
+  const [deleteOrderMutation] = useMutation(DELETE_ORDER);
 
   useEffect(() => {
-    getAllOrders();
-  }, []);
+    console.log(data?.orders);
 
-  const getAllOrders = async () => {
-    const res = await axios.get("/api/orders");
-    const data = await res.data;
-
-    if (res.status === 200) {
-      setOrders(data);
+    if (data?.orders) {
+      setOrders(data.orders);
     }
-  };
+    // getAllOrders();
+  }, [data?.orders]);
+
+  // const getAllOrders = async () => {
+  //   const res = await axios.get("/api/orders");
+  //   const data = await res.data;
+
+  //   if (res.status === 200) {
+  //     setOrders(data);
+  //   }
+  // };
 
   const clickHandler = (e) => {
     e.preventDefault();
@@ -46,21 +55,28 @@ const Orders = () => {
 
   const deleteOrderHandler = async (id) => {
     try {
-      const res = await axios.delete(`/api/delete-order/${id}`);
-      if (res.status === 200) {
-        console.log(res.data);
-        setOrders(orders.filter((el) => el.id !== id));
-
-        dispatch(setType({ type: "success" }));
-        dispatch(setMessage({ message: "Successfully deleted the order." }));
-      } else {
+      // const res = await axios.delete(`/api/delete-order/${id}`);
+      // if (res.status === 200) {
+      //   console.log(res.data);
+      const { data } = await deleteOrderMutation({
+        variables: {
+          id,
+        },
+      });
+      setOrders(orders.filter((el) => el.id !== id));
+      dispatch(setType({ type: "success" }));
+      dispatch(setMessage({ message: "Successfully deleted the order." }));
+      // } else {
+      if (data.deletedOrder?.message) {
         dispatch(setType({ type: "error" }));
-        dispatch({ message: res.data?.message });
+        dispatch({ message: data.deletedOrder.message });
       }
+
+      // }
     } catch (error) {
       console.log(error);
       dispatch(setType({ type: "error" }));
-      dispatch(setMessage({ message: error.response?.data?.message }));
+      dispatch(setMessage({ message: "Failed to delete order." }));
     }
   };
 
@@ -95,14 +111,14 @@ const Orders = () => {
                   ?.filter((ord) =>
                     search.toLowerCase() === ""
                       ? ord
-                      : ord.product.title
+                      : ord?.product_id?.title
                           .toLowerCase()
                           .includes(search.toLowerCase())
                   )
                   .map((ord) => (
                     <tr className="border-b last:border-0" key={ord?.id}>
                       <TableData data={ord?.id} />
-                      <TableData data={ord?.product?.title} />
+                      <TableData data={ord?.product_id?.title} />
                       <TableData data={ord?.quantity} />
                       <TableActions
                         href={`/update-order?id=${ord?.id}`}

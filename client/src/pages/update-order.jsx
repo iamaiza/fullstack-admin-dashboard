@@ -2,9 +2,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Form, FormWrapper, Input, Select } from "../components/Form";
 import TitleMenu from "../components/title-menu";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { changeEventHandler, clearStateHandler, setOrderData } from "../store/orderSlice";
+import {
+  changeEventHandler,
+  clearStateHandler,
+  setOrderData,
+} from "../store/orderSlice";
+import { useMutation, useQuery } from "@apollo/client";
+import { ORDER, PRODUCTS, UPDATE_ORDER } from "../query";
 
 const UpdateOrder = () => {
   const location = useLocation();
@@ -15,40 +20,30 @@ const UpdateOrder = () => {
   const path = pathname.slice(1);
   const search = new URLSearchParams(location.search);
   const order_id = search.get("id");
-
+  const { data } = useQuery(PRODUCTS);
   const [products, setProducts] = useState([]);
-  const state = useSelector((state) => ({
-    quantity: state.order.quantity,
-    product: state.order.product,
-  }));
+  const { quantity, product } = useSelector((state) => state.order);
+
+  const { data: orderData, refetch } = useQuery(ORDER, {
+    variables: {
+      id: order_id,
+    },
+  });
+  const [updateOrderMutation] = useMutation(UPDATE_ORDER);
 
   useEffect(() => {
-    getOrder();
-    getAllProducts();
-    dispatch(clearStateHandler())
-  }, []);
-
-  const getAllProducts = async () => {
-    const res = await axios.get("/api/products_list");
-    const data = await res.data;
-
-    if (res.status === 200) {
-      setProducts(data);
+    if (orderData?.order) {
+      dispatch(
+        setOrderData({
+          ...orderData.order,
+          product_id: orderData.order.product_id.id,
+        })
+      );
     }
-  };
-
-  const getOrder = async () => {
-    try {
-      const res = await axios.get(`/api/orders/${order_id}`);
-      const data = await res.data;
-
-      if (res.status === 200) {
-        dispatch(setOrderData(data));
-      }
-    } catch (error) {
-      console.log(error);
+    if (data?.products) {
+      setProducts(data.products);
     }
-  };
+  }, [orderData?.order, data?.products]);
 
   const changeInputHandler = (fieldname, value) => {
     dispatch(changeEventHandler({ name: fieldname, value }));
@@ -57,16 +52,21 @@ const UpdateOrder = () => {
   const updateOrderHandler = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`/api/update-order/${order_id}`, {
-        quantity: state.quantity,
-        product: state.product,
+      const { data } = await updateOrderMutation({
+        variables: {
+          id: order_id,
+          data: {
+            quantity,
+            product_id: product,
+          },
+        },
       });
+      console.log(data);
 
-      if(res.status === 200) {
-        navigate('/orders')
-        // dispatch(clearStateHandler());
-      }
-
+      dispatch(clearStateHandler());
+      await refetch();
+      
+      navigate("/orders")
     } catch (error) {
       console.log(error);
     }
@@ -87,7 +87,7 @@ const UpdateOrder = () => {
             </label>
             <Select
               name="product"
-              value={state.product}
+              value={product}
               changeInputHandler={changeInputHandler}
             >
               <option selected hidden>
@@ -107,7 +107,7 @@ const UpdateOrder = () => {
             <Input
               placeholder="Quantity"
               name="quantity"
-              value={state.quantity}
+              value={quantity}
               changeInputHandler={changeInputHandler}
             />
           </div>
