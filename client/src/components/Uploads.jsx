@@ -22,7 +22,7 @@ const Uploads = () => {
           },
         });
         const imgUrl = uploadImg.data?.filePath;
-        const url = `http://localhost:4000${imgUrl}`;
+        const url = `http://localhost:3000${imgUrl}`;
         dispatch(setImg({ imgUrl: url }));
       } catch (error) {
         console.log(error);
