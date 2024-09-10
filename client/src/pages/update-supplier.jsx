@@ -9,6 +9,8 @@ import {
   setSupplierData,
 } from "../store/supplierSlice";
 import { useEffect } from "react";
+import { useMutation, useQuery } from "@apollo/client";
+import { SUPPLIER, UPDATE_SUPPLIER } from "../query";
 
 const UpdateSupplier = () => {
   const location = useLocation();
@@ -20,29 +22,22 @@ const UpdateSupplier = () => {
   const searchParams = new URLSearchParams(location?.search);
   const user_id = searchParams.get("id");
 
-  const state = useSelector((state) => ({
-    name: state.supplier.username,
-    address: state.supplier.address,
-    phone: state.supplier.phone,
-  }));
+  const { username, address, phone } = useSelector((state) => state.supplier);
+
+  const { data, refetch } = useQuery(SUPPLIER, {
+    variables: {
+      id: user_id,
+    },
+  });
+  const [updateSupplierMutation] = useMutation(UPDATE_SUPPLIER);
 
   useEffect(() => {
-    getSupplier();
-    dispatch(clearStateHandler());
-  }, []);
-
-  const getSupplier = async () => {
-    try {
-      const res = await axios.get(`/api/suppliers/${user_id}`);
-      const data = await res.data;
-
-      if (res.status === 200) {
-        dispatch(setSupplierData(data));
-      }
-    } catch (error) {
-      console.log(error);
+    console.log(data?.supplier);
+    
+    if (data?.supplier) {
+      dispatch(setSupplierData(data.supplier));
     }
-  };
+  }, [data?.supplier]);
 
   const changeInputHandler = (fieldname, value) => {
     dispatch(changeEventHandler({ name: fieldname, value }));
@@ -51,16 +46,25 @@ const UpdateSupplier = () => {
   const updateSupplierHandler = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`/api/update-supplier/${user_id}`, {
-        name: state.name,
-        address: state.address,
-        phone: state.phone,
+      const { data } = await updateSupplierMutation({
+        variables: {
+          id: user_id,
+          data: {
+            name: username,
+            address,
+            phone,
+          },
+        },
       });
 
-      if (res.status === 200) {
-        navigate("/suppliers");
-        // dispatch(clearStateHandler())
+      if(data.updatedSupplier?.message) {
+        alert(data.updatedSupplier.message);
       }
+
+      dispatch(clearStateHandler());
+      await refetch();
+
+      navigate("/suppliers");
     } catch (error) {
       console.log(error);
     }
@@ -81,7 +85,7 @@ const UpdateSupplier = () => {
             <Input
               placeholder="Name"
               name="username"
-              value={state.name}
+              value={username}
               changeInputHandler={changeInputHandler}
             />
           </div>
@@ -92,7 +96,7 @@ const UpdateSupplier = () => {
             <Input
               placeholder="Address"
               name="address"
-              value={state.address}
+              value={address}
               changeInputHandler={changeInputHandler}
             />
           </div>
@@ -105,7 +109,7 @@ const UpdateSupplier = () => {
             placeholder="Phone Number"
             type="tel"
             name="phone"
-            value={state.phone}
+            value={phone}
             changeInputHandler={changeInputHandler}
           />
         </div>
