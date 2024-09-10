@@ -4,36 +4,44 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Form, FormWrapper, Input, Select } from "../components/Form";
 import TitleMenu from "../components/title-menu";
 import { changeEventHandler, clearStateHandler } from "../store/orderSlice";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { orderErrors } from "../components/Errors";
+import { useMutation, useQuery } from "@apollo/client";
+import { CREATE_ORDER, ORDERS, PRODUCTS } from "../query";
 
 const AddOrder = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const { data } = useQuery(PRODUCTS);
   const [products, setProducts] = useState([]);
 
   const pathname = location?.pathname;
   const path = pathname.slice(1);
 
   const { quantity, product } = useSelector((state) => state.order);
-  const [message, setMessage] = useState("")
+  const [message, setMessage] = useState("");
+  const [createOrderMutation] = useMutation(CREATE_ORDER, {
+    refetchQueries: [{ query: ORDERS }],
+  });
 
   useEffect(() => {
-    getAllProducts();
-    dispatch(clearStateHandler())
-  }, []);
-
-  const getAllProducts = async () => {
-    const res = await axios.get("/api/products_list");
-    const data = await res.data;
-
-    if (res.status === 200) {
-      setProducts(data);
+    if (data?.products) {
+      setProducts(data.products);
     }
-  };
+    // getAllProducts();
+    dispatch(clearStateHandler());
+  }, [data?.products]);
+
+  // const getAllProducts = async () => {
+  //   const res = await axios.get("/api/products_list");
+  //   const data = await res.data;
+
+  //   if (res.status === 200) {
+  //     setProducts(data);
+  //   }
+  // };
 
   const changeInputHandler = (fieldname, value) => {
     dispatch(changeEventHandler({ name: fieldname, value }));
@@ -45,14 +53,26 @@ const AddOrder = () => {
       const error = orderErrors({ quantity, product, setMessage });
       if (error) return;
 
-      const res = await axios.post("/api/add-order", {
-        quantity,
-        product,
+      console.log(quantity, product);
+      
+      const { data } = await createOrderMutation({
+        variables: {
+          data: {
+            product_id: product,
+            quantity,
+          },
+        },
       });
-      if (res.status === 200) {
-        navigate("/orders");
-        // dispatch(clearStateHandler());
-      }
+      // console.log(data);
+      navigate("/orders");
+      // const res = await axios.post("/api/add-order", {
+      //   quantity,
+      //   product,
+      // });
+      // if (res.status === 200) {
+      //
+      //   // dispatch(clearStateHandler());
+      // }
     } catch (error) {
       console.log(error);
     }
@@ -71,8 +91,8 @@ const AddOrder = () => {
             Product
           </option>
           {products?.map((prod) => (
-            <option key={prod.id} value={prod.id}>
-              {prod.title}
+            <option key={prod?.id} value={prod?.id}>
+              {prod?.title}
             </option>
           ))}
         </Select>
