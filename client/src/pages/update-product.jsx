@@ -13,6 +13,8 @@ import {
 } from "../store/productSlice";
 import { productError } from "../components/Errors";
 import Uploads from "../components/Uploads";
+import { useMutation, useQuery } from "@apollo/client";
+import { PRODUCT, SUPPLIERS, UPDATE_PRODUCT } from "../query";
 const UpdateProduct = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,32 +27,28 @@ const UpdateProduct = () => {
   const prodId = searchParams.get("id");
 
   const [suppliers, setSuppliers] = useState([]);
-  const { title, quantity, img, purchase_price, sell_price, supplier } =
+  const { title, quantity, img, purchase_price, sell_price, supplier_id } =
     useSelector((state) => state.product);
   const [message, setMessage] = useState("");
+  const { data, refetch } = useQuery(PRODUCT, {
+    variables: { id: prodId },
+  });
+  const { data: userData } = useQuery(SUPPLIERS);
+  const [updateProductMutation] = useMutation(UPDATE_PRODUCT);
 
   useEffect(() => {
-    getProduct();
-    getAllSuppliers();
-    dispatch(clearStateHandler());
-  }, []);
-
-  const getAllSuppliers = async () => {
-    const res = await axios.get("/api/all_suppliers");
-    const data = await res.data;
-
-    if (res.status === 200) {
-      setSuppliers(data);
+    if (data?.product) {
+      dispatch(
+        setProductData({
+          ...data.product,
+          supplier_id: data.product.supplier_id.id,
+        })
+      );
     }
-  };
-  const getProduct = async () => {
-    const res = await axios.get(`/api/products/${prodId}`);
-    const data = await res.data;
-
-    if (res.status === 200) {
-      dispatch(setProductData(data));
+    if (userData?.suppliers) {
+      setSuppliers(userData.suppliers);
     }
-  };
+  }, [data?.product, userData?.suppliers]);
 
   const changeInputHandler = (fieldname, value) => {
     dispatch(changeEventHandler({ name: fieldname, value }));
@@ -64,22 +62,29 @@ const UpdateProduct = () => {
         quantity,
         purchase_price,
         sell_price,
-        supplier,
+        supplier_id,
         setMessage,
       });
       if (error) return;
-      const res = await axios.put(`/api/update-product/${prodId}`, {
-        title,
-        quantity,
-        img,
-        purchase_price,
-        sell_price,
-        supplier,
+
+      const { data } = await updateProductMutation({
+        variables: {
+          id: prodId,
+          data: {
+            title,
+            img,
+            quantity,
+            purchase_price,
+            sell_price,
+            supplier_id,
+          },
+        },
       });
 
-      if (res.status === 200) {
-        navigate("/products");
-      }
+      console.log(data);
+      dispatch(clearStateHandler());
+      await refetch();
+      navigate("/products");
     } catch (error) {
       console.log(error);
     }
@@ -148,7 +153,7 @@ const UpdateProduct = () => {
           </label>
           <Select
             name="supplier"
-            value={supplier}
+            value={supplier_id}
             changeInputHandler={changeInputHandler}
           >
             <option selected hidden>

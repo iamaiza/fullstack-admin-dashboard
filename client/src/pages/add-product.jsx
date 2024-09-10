@@ -1,12 +1,13 @@
 import { Form, FormWrapper, Input, Select } from "../components/Form";
 import TitleMenu from "../components/title-menu";
 import { changeEventHandler, clearStateHandler } from "../store/productSlice";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { productError } from "../components/Errors";
 import Uploads from "../components/Uploads";
+import { useMutation, useQuery } from "@apollo/client";
+import { CREATE_PRODUCT, PRODUCTS, SUPPLIERS } from "../query";
 
 const AddProduct = () => {
   const location = useLocation();
@@ -17,23 +18,20 @@ const AddProduct = () => {
   const path = pathname.slice(1);
 
   const [suppliers, setSuppliers] = useState([]);
-  const { title, quantity, img, purchase_price, sell_price, supplier } = useSelector(
-    (state) => state.product
-  );
+  const { title, quantity, img, purchase_price, sell_price, supplier } =
+    useSelector((state) => state.product);
   const [message, setMessage] = useState("");
+  const { data } = useQuery(SUPPLIERS)
+  const [createProductMutation] = useMutation(CREATE_PRODUCT, {
+    refetchQueries: [{ query: PRODUCTS }],
+  });
 
   useEffect(() => {
-    getAllSuppliers();
-    dispatch(clearStateHandler());
-  }, []);
-
-  const getAllSuppliers = async () => {
-    const res = await axios.get("/api/suppliers_list");
-    const data = await res.data;
-    if (res.status === 200) {
-      setSuppliers(data);
+    if(data?.suppliers) {
+      setSuppliers(data.suppliers)
     }
-  };
+    dispatch(clearStateHandler());
+  }, [data?.suppliers]);
 
   const addProductHandler = async (e) => {
     e.preventDefault();
@@ -47,17 +45,19 @@ const AddProduct = () => {
         setMessage,
       });
       if (error) return;
-      const res = await axios.post("/api/add-product", {
-        title,
-        img,
-        quantity,
-        purchase_price,
-        sell_price,
-        supplier,
-      });
-      if (res.status === 200) {
-        navigate("/products");
-      }
+      await createProductMutation({
+        variables: {
+          data: {
+            title,
+            quantity,
+            img,
+            purchase_price,
+            sell_price,
+            supplier_id: supplier,
+          }
+        }
+      })
+      navigate("/products");
     } catch (error) {
       console.log(error);
     }

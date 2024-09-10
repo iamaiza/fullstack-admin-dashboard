@@ -7,9 +7,10 @@ const productSlice = createSlice({
     quantity: "",
     purchase_price: "",
     sell_price: "",
-    supplier: "",
+    supplier_id: "",
     search: "",
-    img: ""
+    img: "",
+    file: null
   },
   reducers: {
     changeEventHandler: (state, action) => {
@@ -22,7 +23,7 @@ const productSlice = createSlice({
         state.img = "";
         state.purchase_price = "";
         state.sell_price = "";
-        state.supplier = "";
+        state.supplier_id = "";
     },
     setProductData: (state, action) => {
       const { title, quantity, purchase_price, img, sell_price, supplier_id } = action.payload;
@@ -31,14 +32,17 @@ const productSlice = createSlice({
       state.quantity = quantity;
       state.purchase_price = purchase_price;
       state.sell_price = sell_price;
-      state.supplier = supplier_id;
+      state.supplier_id = supplier_id;
     },
     setImg: (state, action) => {
       const { imgUrl } = action.payload;
       state.img = imgUrl;
+    },
+    setFile: (state, action) => {
+      state.file = action.payload;
     }
   }
 });
 
-export const { changeEventHandler, clearStateHandler, setProductData, setImg } = productSlice.actions;
+export const { changeEventHandler, clearStateHandler, setProductData, setImg, setFile } = productSlice.actions;
 export default productSlice.reducer;

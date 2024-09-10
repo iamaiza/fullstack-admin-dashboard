@@ -20,6 +20,8 @@ import {
 } from "../store/notificationSlice";
 import { productDeletionSuccess } from "../lib";
 import { changeEventHandler } from "../store/productSlice";
+import { useMutation, useQuery } from "@apollo/client";
+import { DELETE_PRODUCT, PRODUCTS } from "../query";
 
 const Products = () => {
   const dispatch = useDispatch();
@@ -27,28 +29,23 @@ const Products = () => {
   const location = useLocation();
   const pathname = location?.pathname;
   const path = pathname.slice(1);
+  const { data } = useQuery(PRODUCTS);
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
 
   const state = useSelector((state) => ({
     message: state.notification.message,
     type: state.notification.type,
   }));
   const { search } = useSelector((state) => state.product);
+  const [deleteProductMutation] = useMutation(DELETE_PRODUCT);
 
-  const navigate = useNavigate();
   useEffect(() => {
-    getAllProducts();
-  }, []);
-
-  const getAllProducts = async () => {
-    const res = await axios.get("/api/products");
-    const data = await res.data;
-    console.log(data);
-
-    if (res.status === 200) {
-      setProducts(data);
+    // getAllProducts();
+    if (data?.products) {
+      setProducts(data.products);
     }
-  };
+  }, [data?.products]);
 
   const clickHandler = (e) => {
     e.preventDefault();
@@ -61,26 +58,29 @@ const Products = () => {
 
   const deleteProductHandler = async (id) => {
     try {
-      const res = await axios.delete(`/api/delete-product/${id}`);
-      if (res.status === 200 && !res.data.message) {
-        console.log(res.data);
 
-        setProducts(products.filter((el) => el.id !== id));
-        dispatch(setType({ type: "success" }));
-        dispatch(setMessage({ message: productDeletionSuccess }));
-      } else {
+      const { data } = await deleteProductMutation({
+        variables: {
+          id
+        }
+      })
+      if(data.deletedProduct?.message) {
         dispatch(setType({ type: "error" }));
         dispatch(showNotification());
-        dispatch(setMessage({ message: res.data?.message }));
+        dispatch(setMessage(data.deletedProduct.message));
       }
+
+      setProducts(products.filter(el => el.id !== id));
+      dispatch(setType({ type: "success" }));
+      dispatch(setMessage({ message: productDeletionSuccess }))
+      
     } catch (error) {
       console.log(error);
       dispatch(setType({ type: "error" }));
       dispatch(showNotification());
       dispatch(
         setMessage({
-          message:
-            error?.response?.data?.message || "Failed to delete product.",
+          message: "Failed to delete product.",
         })
       );
     }
@@ -128,7 +128,11 @@ const Products = () => {
                       <td className="py-3 px-5 text-sm capitalize flex items-center gap-2">
                         {prod?.img && (
                           <figure className="w-14">
-                            <img className="w-full object-cover" src={prod?.img} alt="" />
+                            <img
+                              className="w-full object-cover"
+                              src={prod?.img}
+                              alt=""
+                            />
                           </figure>
                         )}
                         <span>{prod?.title}</span>
@@ -136,11 +140,11 @@ const Products = () => {
                       <TableData data={prod?.quantity} />
                       <TableData data={`$${prod?.purchase_price}`} />
                       <TableData data={`$${prod?.sell_price}`} />
-                      <TableData data={prod?.supplier?.name} />
+                      <TableData data={prod?.supplier_id?.name} />
                       <TableActions
                         href={`/update-product?id=${prod?.id}`}
                         deleteHandler={deleteProductHandler}
-                        id={prod.id}
+                        id={prod?.id}
                       />
                     </tr>
                   ))}

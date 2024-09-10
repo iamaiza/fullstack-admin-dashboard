@@ -1,0 +1,104 @@
+scalar DateTime
+
+# Query
+
+type Query {
+    suppliers: [Supplier!]!
+    products: [Product!]!
+    orders: [Order!]!
+    supplier(id: String!): Supplier!
+    product(id: String!): Product!
+    order(id: String!): Order!
+}
+
+type Supplier {
+    id: ID!
+    name: String!
+    address: String!
+    phone: String!
+    deletedAt: DateTime
+    products: [Product!]!
+}
+
+type Product {
+    id: ID!
+    title: String!
+    img: String
+    quantity: String!
+    purchase_price: String!
+    sell_price: String!
+    supplier_id: Supplier!
+    deletedAt: DateTime
+    orders: [Order!]!
+}
+
+type Order {
+    id: ID!
+    product_id: Product!
+    quantity: String!
+    deletedAt: DateTime
+}
+
+# Inputs
+
+# Suppliers
+input CreateSupplierInput {
+    name: String!
+    address: String!
+    phone: String!
+}
+
+input UpdateSupplierInput {
+    name: String
+    address: String
+    phone: String
+}
+
+# Products
+input CreateProductInput {
+    title: String!
+    quantity: String!
+    img: String
+    purchase_price: String!
+    sell_price: String!
+    supplier_id: ID!
+}
+
+input UpdateProductInput {
+    title: String
+    quantity: String
+    img: String
+    purchase_price: String
+    sell_price: String
+    supplier_id: ID
+}
+
+# Orders
+input CreateOrderInput {
+    product_id: ID!
+    quantity: String!
+}
+
+input UpdateOrderInput {
+    product_id: String
+    quantity: String
+}
+
+# Mutations
+
+type Mutation {
+    # Suppliers
+    createSupplier(data: CreateSupplierInput!): Supplier!
+    updateSupplier(id: String!, data: UpdateSupplierInput!): Supplier!
+    deleteSupplier(id: String!): Supplier!
+
+    # Products
+    createProduct(data: CreateProductInput!): Product!
+    updateProduct(id: String!, data: UpdateProductInput!): Product!
+    deleteProduct(id: String!): Product!
+
+    # Orders
+    createOrder(data: CreateOrderInput!): Order!
+    updateOrder(id: String!, data: UpdateOrderInput!): Order!
+    deleteOrder(id: String!): Order!
+}
