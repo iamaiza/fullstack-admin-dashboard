@@ -28,20 +28,6 @@ export const routeCategories = {
 };
 
 export const productDeletionSuccess = "Product deleted successfully";
-// export const fieldsError = {
-//   product: [
-//     { id: "title", text: "Title is required." },
-//     { text: "Quantity is required." },
-//     { text: "Purchase price is required." },
-//     { text: "Sell price is required." },
-//     { text: "Supplier is required." }
-//   ],
-//   supplier: [
-//     { text: "Name is required." },
-//     { text: "Address is required." },
-//     { text: "Phone No. is required." }
-//   ]
-// };
 export const fieldsError = {
     product: {
         titleError: "Title is required.",

@@ -14,7 +14,7 @@ import UpdateOrder from "./pages/update-order";
 import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
 
-axios.defaults.baseURL = "http://localhost:4000";
+axios.defaults.baseURL = "http://localhost:3000";
 axios.defaults.withCredentials = true;
 
 function App() {
