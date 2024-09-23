@@ -113,6 +113,7 @@ const Suppliers = () => {
             </Table>
           )}
         </TableWrapper>
+        {suppliers?.length <= 0 && <p className="text-lg text-gray-500 font-semibold pt-8 pb-5 text-center px-3">No supplier available.</p>}
       </Wrapper>
       {message && <Notification message={message} type={type} />}
     </div>

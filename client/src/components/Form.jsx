@@ -2,7 +2,7 @@
 
 export const FormWrapper = ({ children }) => {
   return (
-    <div className="max-h-full overflow-auto pb-14">{children}</div>
+    <div className="max-h-screen h-full overflow-y-auto overflow-x-hidden pb-14 relative">{children}</div>
   );
 };
 
