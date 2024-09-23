@@ -57,6 +57,7 @@ const AddProduct = () => {
           }
         }
       })
+      // dispatch(clearStateHandler());
       navigate("/products");
     } catch (error) {
       console.log(error);

@@ -67,7 +67,7 @@ const UpdateProduct = () => {
       });
       if (error) return;
 
-      const { data } = await updateProductMutation({
+      await updateProductMutation({
         variables: {
           id: prodId,
           data: {
@@ -80,8 +80,6 @@ const UpdateProduct = () => {
           },
         },
       });
-
-      console.log(data);
       dispatch(clearStateHandler());
       await refetch();
       navigate("/products");

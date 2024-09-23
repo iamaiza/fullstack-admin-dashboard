@@ -58,22 +58,20 @@ const Products = () => {
 
   const deleteProductHandler = async (id) => {
     try {
-
       const { data } = await deleteProductMutation({
         variables: {
-          id
-        }
-      })
-      if(data.deletedProduct?.message) {
+          id,
+        },
+      });
+      if (data.deletedProduct?.message) {
         dispatch(setType({ type: "error" }));
         dispatch(showNotification());
         dispatch(setMessage(data.deletedProduct.message));
       }
 
-      setProducts(products.filter(el => el.id !== id));
+      setProducts(products.filter((el) => el.id !== id));
       dispatch(setType({ type: "success" }));
-      dispatch(setMessage({ message: productDeletionSuccess }))
-      
+      dispatch(setMessage({ message: productDeletionSuccess }));
     } catch (error) {
       console.log(error);
       dispatch(setType({ type: "error" }));
@@ -152,6 +150,9 @@ const Products = () => {
             </Table>
           )}
         </TableWrapper>
+        {products?.length === 0 && (
+          <div className="text-center my-8 font-bold text-gray-400 text-xl">No products available.</div>
+        )}
       </Wrapper>
       {state.message && (
         <Notification message={state.message} type={state.type} />

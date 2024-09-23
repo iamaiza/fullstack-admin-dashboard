@@ -5,12 +5,12 @@ const Product = {
     });
     return supplier;
   },
-  orders: async (parent, args, { prisma }) => {
-    const orders = await prisma.order.findMany({
-      where: { product_id: parseInt(parent.id) },
-    });
-    return orders;
-  },
+  // orderId: async(parent, __, { prisma }) => {
+  //   const order = await prisma.order.findUnique({
+  //     where: { id: parseInt(parent.orderId) },
+  //   })
+  //   return order;
+  // }
 };
 
 module.exports = Product;

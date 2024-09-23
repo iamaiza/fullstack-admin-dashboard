@@ -7,7 +7,7 @@ const productSlice = createSlice({
     quantity: "",
     purchase_price: "",
     sell_price: "",
-    supplier_id: "",
+    supplier: "",
     search: "",
     img: "",
     file: null
@@ -23,7 +23,7 @@ const productSlice = createSlice({
         state.img = "";
         state.purchase_price = "";
         state.sell_price = "";
-        state.supplier_id = "";
+        state.supplier = "";
     },
     setProductData: (state, action) => {
       const { title, quantity, purchase_price, img, sell_price, supplier_id } = action.payload;
@@ -32,7 +32,7 @@ const productSlice = createSlice({
       state.quantity = quantity;
       state.purchase_price = purchase_price;
       state.sell_price = sell_price;
-      state.supplier_id = supplier_id;
+      state.supplier = supplier_id;
     },
     setImg: (state, action) => {
       const { imgUrl } = action.payload;
