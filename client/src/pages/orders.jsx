@@ -9,14 +9,14 @@ import {
   Wrapper,
 } from "../components/Table";
 import TitleMenu from "../components/title-menu";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Notification from "../components/Notification";
 import { setMessage, setType } from "../store/notificationSlice";
-import { changeEventHandler } from "../store/orderSlice";
+// import { changeEventHandler } from "../store/orderSlice";
 import { useMutation, useQuery } from "@apollo/client";
 import { DELETE_ORDER, ORDERS } from "../query";
+import { format } from "date-fns";
 
 const Orders = () => {
   const location = useLocation();
@@ -31,22 +31,11 @@ const Orders = () => {
   const [deleteOrderMutation] = useMutation(DELETE_ORDER);
 
   useEffect(() => {
-    console.log(data?.orders);
 
     if (data?.orders) {
       setOrders(data.orders);
     }
-    // getAllOrders();
   }, [data?.orders]);
-
-  // const getAllOrders = async () => {
-  //   const res = await axios.get("/api/orders");
-  //   const data = await res.data;
-
-  //   if (res.status === 200) {
-  //     setOrders(data);
-  //   }
-  // };
 
   const clickHandler = (e) => {
     e.preventDefault();
@@ -55,9 +44,6 @@ const Orders = () => {
 
   const deleteOrderHandler = async (id) => {
     try {
-      // const res = await axios.delete(`/api/delete-order/${id}`);
-      // if (res.status === 200) {
-      //   console.log(res.data);
       const { data } = await deleteOrderMutation({
         variables: {
           id,
@@ -66,13 +52,11 @@ const Orders = () => {
       setOrders(orders.filter((el) => el.id !== id));
       dispatch(setType({ type: "success" }));
       dispatch(setMessage({ message: "Successfully deleted the order." }));
-      // } else {
+
       if (data.deletedOrder?.message) {
         dispatch(setType({ type: "error" }));
         dispatch({ message: data.deletedOrder.message });
       }
-
-      // }
     } catch (error) {
       console.log(error);
       dispatch(setType({ type: "error" }));
@@ -80,8 +64,17 @@ const Orders = () => {
     }
   };
 
-  const changeInputHandler = (fieldname, value) => {
-    dispatch(changeEventHandler({ name: fieldname, value }));
+  // const changeInputHandler = (fieldname, value) => {
+  //   dispatch(changeEventHandler({ name: fieldname, value }));
+  // };
+
+  const formatDate = (date) => {
+    const dateString = new Date(date);
+    const month = format(dateString, "MMMM").slice(0, 3);
+    return `${format(dateString, "d")} ${month}, ${format(
+      dateString,
+      "h:mm aa"
+    )}`;
   };
 
   return (
@@ -93,7 +86,7 @@ const Orders = () => {
           clickHandler={clickHandler}
           value={search}
           name="search"
-          eventHandler={changeInputHandler}
+          // eventHandler={changeInputHandler}
         />
         <TableWrapper>
           {orders?.length > 0 && (
@@ -101,25 +94,22 @@ const Orders = () => {
               <thead>
                 <tr className="border-b">
                   <TableHeading heading="id" />
-                  <TableHeading heading="product" />
+                  <TableHeading heading="price" />
                   <TableHeading heading="quantity" />
+                  <TableHeading heading="created At" />
+                  <TableHeading heading="updated At" />
                   <TableHeading heading="actions" />
                 </tr>
               </thead>
               <tbody>
                 {orders
-                  ?.filter((ord) =>
-                    search.toLowerCase() === ""
-                      ? ord
-                      : ord?.product_id?.title
-                          .toLowerCase()
-                          .includes(search.toLowerCase())
-                  )
-                  .map((ord) => (
+                  ?.map((ord) => (
                     <tr className="border-b last:border-0" key={ord?.id}>
                       <TableData data={ord?.id} />
-                      <TableData data={ord?.product_id?.title} />
+                      <TableData data={`$${ord?.price}`} />
                       <TableData data={ord?.quantity} />
+                      <TableData data={formatDate(ord?.createdAt)} />
+                      <TableData data={formatDate(ord?.updatedAt)} />
                       <TableActions
                         href={`/update-order?id=${ord?.id}`}
                         id={ord?.id}
@@ -131,6 +121,11 @@ const Orders = () => {
             </Table>
           )}
         </TableWrapper>
+        {orders?.length === 0 && (
+          <div className="text-center my-8 font-bold text-gray-400 text-xl">
+            No orders available.
+          </div>
+        )}
       </Wrapper>
 
       {message && <Notification message={message} type={type} />}
