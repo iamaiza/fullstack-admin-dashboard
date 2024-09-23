@@ -32,7 +32,6 @@ const UpdateSupplier = () => {
   const [updateSupplierMutation] = useMutation(UPDATE_SUPPLIER);
 
   useEffect(() => {
-    console.log(data?.supplier);
     
     if (data?.supplier) {
       dispatch(setSupplierData(data.supplier));

@@ -56,7 +56,7 @@ export const TableActions = ({ href, deleteHandler, id }) => {
     deleteHandler(id);
   };
   return (
-    <td className="py-3 px-5">
+    <td className="py-3 px-5 text-sm">
       <div className="flex items-center gap-3">
         <button className="delete" onClick={deleteTrHandler}>
           <DeleteIcon />
