@@ -2,7 +2,7 @@ export const Logo = () => {
   return (
     <svg
       viewBox="0 0 369.9130434782609 76.08695652173914"
-      class="looka-1j8o68f"
+      className="looka-1j8o68f"
     >
       <defs id="SvgjsDefs3435"></defs>
       <g

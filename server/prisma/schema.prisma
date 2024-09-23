@@ -17,22 +17,36 @@ model Supplier {
 }
 
 model Product {
-  id             Int       @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   img            String?
-  title          String    @unique
+  title          String        @unique
   quantity       String
   purchase_price String
   sell_price     String
   supplier_id    Int
-  supplier       Supplier  @relation(fields: [supplier_id], references: [id])
-  orders         Order[]
+  supplier       Supplier      @relation(fields: [supplier_id], references: [id])
   deletedAt      DateTime?
+  orderedItems   OrderedItem[]
 }
 
 model Order {
-  id         Int       @id @default(autoincrement())
-  quantity   String
+  id        Int           @id @default(autoincrement())
+  quantity  String
+  price     String
+  deletedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  products  OrderedItem[]
+}
+
+model OrderedItem {
+  id         Int     @id @default(autoincrement())
+  order_id   Int
   product_id Int
-  product    Product   @relation(fields: [product_id], references: [id])
-  deletedAt  DateTime?
+  quantity   String
+  product    Product @relation(fields: [product_id], references: [id])
+  order      Order   @relation(fields: [order_id], references: [id])
+
+  // @@map("orderedItem")
+  @@unique([order_id, product_id])
 }

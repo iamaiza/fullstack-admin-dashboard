@@ -8,7 +8,7 @@ type Query {
     orders: [Order!]!
     supplier(id: String!): Supplier!
     product(id: String!): Product!
-    order(id: String!): Order!
+    order(id: String!): Order!   
 }
 
 type Supplier {
@@ -29,14 +29,24 @@ type Product {
     sell_price: String!
     supplier_id: Supplier!
     deletedAt: DateTime
-    orders: [Order!]!
+    orderedItems: [OrderedItem!]!
 }
 
 type Order {
     id: ID!
+    quantity: String!
+    price: String!
+    deletedAt: DateTime
+    createdAt: DateTime
+    updatedAt: DateTime
+    products: [OrderedItem!]!
+}
+
+type OrderedItem {
+    id: ID!
+    order_id: Order!
     product_id: Product!
     quantity: String!
-    deletedAt: DateTime
 }
 
 # Inputs
@@ -74,14 +84,22 @@ input UpdateProductInput {
 }
 
 # Orders
-input CreateOrderInput {
+
+input OrderedItemInput {
     product_id: ID!
     quantity: String!
 }
 
+input CreateOrderInput {
+    quantity: String!
+    price: String!
+    products: [OrderedItemInput!]!
+}
+
 input UpdateOrderInput {
-    product_id: String
+    products: [OrderedItemInput!]!
     quantity: String
+    price: String
 }
 
 # Mutations

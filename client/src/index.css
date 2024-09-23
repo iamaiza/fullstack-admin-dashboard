@@ -16,6 +16,7 @@ input {
   background: linear-gradient(to top left, #141727, #3a416f);
 }
 
+
 .logo svg {
   @apply w-[180px] max-[400px]:w-[160px];
 }
@@ -36,6 +37,10 @@ input {
   /* border-left: 2px solid #ef4444; */
   animation: slide-in 0.2s linear forwards;
   /* overflow: hidden; */
+}
+
+.slide-in {
+  animation: slide-in 0.2s linear forwards;
 }
 
 @keyframes slide-in {

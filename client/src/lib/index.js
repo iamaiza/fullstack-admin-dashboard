@@ -24,7 +24,7 @@ export const sidebarLinks = [
 export const routeCategories = {
   products: ["/products", "/add-product", "/update-product"],
   suppliers: ["/suppliers", "/add-supplier", "/update-supplier"],
-  orders: ["/orders", "/add-order", "/update-order"],
+  orders: ["/orders", "/add-order", "/update-order", "/orders/products"],
 };
 
 export const productDeletionSuccess = "Product deleted successfully";

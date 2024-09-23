@@ -14,6 +14,7 @@ const Mutation = require("./resolvers/Mutation");
 const Supplier = require("./resolvers/Supplier");
 const Product = require("./resolvers/Product");
 const Order = require("./resolvers/Order");
+const OrderedItem = require('./resolvers/OrderedItem')
 
 const startServer = async () => {
   const app = express();
@@ -44,7 +45,7 @@ const startServer = async () => {
 
   const server = new ApolloServer({
     typeDefs: schema,
-    resolvers: { Query, Mutation, Supplier, Product, Order },
+    resolvers: { Query, Mutation, Supplier, Product, Order, OrderedItem },
   });
 
   const { url } = await startStandaloneServer(server, {

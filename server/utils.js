@@ -16,3 +16,17 @@ const DateTime = new GraphQLScalarType({
     return null;
   },
 });
+
+module.exports.getSalesByDate = async (prisma, startDate, endDate) => {
+  return await prisma.order.findMany({
+    where: {
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+};
