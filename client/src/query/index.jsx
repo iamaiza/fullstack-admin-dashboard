@@ -130,6 +130,13 @@ export const CREATE_ORDER = gql`
     createOrder(data: $data) {
       id
       quantity
+      price
+      products {
+        product_id {
+          id
+          title
+        }
+      }
     }
   }
 `;
@@ -138,11 +145,10 @@ export const ORDERS = gql`
   query orders {
     orders {
       id
-      product_id {
-        id
-        title
-      }
+      price
       quantity
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -151,11 +157,17 @@ export const ORDER = gql`
   query order($id: String!) {
     order(id: $id) {
       id
-      product_id {
-        id
-        title
-      }
       quantity
+      price
+      products {
+        product_id {
+          id
+          title
+          img
+          quantity
+          sell_price
+        }
+      }
     }
   }
 `;
@@ -164,23 +176,54 @@ export const UPDATE_ORDER = gql`
   mutation updateOrder($id: String!, $data: UpdateOrderInput!) {
     updateOrder(id: $id, data: $data) {
       id
-      product_id {
-        id
-        title
-      },
       quantity
-    }  
+      price
+      products {
+        product_id {
+          id
+          title
+          quantity
+          img
+          sell_price
+        }
+      }
+    }
   }
-  `;
+`;
 
 export const DELETE_ORDER = gql`
   mutation deleteOrder($id: String!) {
     deleteOrder(id: $id) {
       id
-      product_id {
-        id
-        title
-      }
+      quantity
+      price
+    }
+  }
+`;
+
+//  Sales
+export const DAILY_SALES = gql`
+  query dailySales {
+    dailySales {
+      # totalOrders
+      sales
+    }
+  }
+`;
+
+export const WEEKLY_SALES = gql`
+  query weeklySales {
+    weeklySales {
+      date
+      totalSales
+    }
+  }
+`;
+export const MONTHLY_SALES = gql`
+  query monthlySales {
+    monthlySales {
+      date
+      totalSales
     }
   }
 `;
