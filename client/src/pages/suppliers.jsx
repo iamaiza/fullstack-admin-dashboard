@@ -54,7 +54,6 @@ const Suppliers = () => {
       setSuppliers(suppliers.filter((el) => el.id !== id));
       dispatch(setType({ type: "success" }));
       dispatch(setMessage({ message: "Supplier deleted successfully" }));
-
     } catch (error) {
       console.log(error);
       dispatch(setType({ type: "error" }));
@@ -67,7 +66,7 @@ const Suppliers = () => {
   };
 
   return (
-    <div className="px-12 max-[1290px]:px-7">
+    <div className="px-12 max-[1290px]:px-7 pb-20 overflow-auto max-h-screen">
       <TitleMenu pageType="pages" pageName={path} />
       <Wrapper>
         <AddTable
@@ -113,7 +112,11 @@ const Suppliers = () => {
             </Table>
           )}
         </TableWrapper>
-        {suppliers?.length <= 0 && <p className="text-lg text-gray-500 font-semibold pt-8 pb-5 text-center px-3">No supplier available.</p>}
+        {suppliers?.length <= 0 && (
+          <p className="text-lg text-gray-500 font-semibold pt-8 pb-5 text-center px-3">
+            No supplier available.
+          </p>
+        )}
       </Wrapper>
       {message && <Notification message={message} type={type} />}
     </div>
