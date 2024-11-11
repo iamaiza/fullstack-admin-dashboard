@@ -8,7 +8,6 @@ import {
   Wrapper,
 } from "../components/Table";
 import TitleMenu from "../components/title-menu";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Notification from "../components/Notification";
@@ -22,6 +21,7 @@ import { productDeletionSuccess } from "../lib";
 import { changeEventHandler } from "../store/productSlice";
 import { useMutation, useQuery } from "@apollo/client";
 import { DELETE_PRODUCT, PRODUCTS } from "../query";
+import { DropdownIcon } from "../icons";
 
 const Products = () => {
   const dispatch = useDispatch();
@@ -39,6 +39,21 @@ const Products = () => {
   }));
   const { search } = useSelector((state) => state.product);
   const [deleteProductMutation] = useMutation(DELETE_PRODUCT);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPageProd = 6;
+
+  const filteredProducts = products?.filter((prod) =>
+    search.toLowerCase() === ""
+      ? prod
+      : prod.title.toLowerCase().includes(search.toLowerCase())
+  );
+  const totalPage = Math.ceil(filteredProducts.length / perPageProd);
+
+  const currentProducts = filteredProducts?.slice(
+    (currentPage - 1) * perPageProd,
+    currentPage * perPageProd
+  );
 
   useEffect(() => {
     // getAllProducts();
@@ -88,8 +103,12 @@ const Products = () => {
     dispatch(changeEventHandler({ name: fieldname, value }));
   };
 
+  const goToPage = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
-    <div className="px-12 max-[1290px]:px-7">
+    <div className="px-12 pb-20 max-[1290px]:px-7 overflow-auto max-h-screen">
       <TitleMenu pageType="pages" pageName={path} />
       <Wrapper>
         <AddTable
@@ -114,44 +133,65 @@ const Products = () => {
                 </tr>
               </thead>
               <tbody>
-                {products
-                  ?.filter((prod) =>
-                    search.toLowerCase() === ""
-                      ? prod
-                      : prod.title.toLowerCase().includes(search.toLowerCase())
-                  )
-                  .map((prod) => (
-                    <tr className="border-b last:border-0" key={prod?.id}>
-                      <TableData data={prod?.id} />
-                      <td className="py-3 px-5 text-sm capitalize flex items-center gap-2">
-                        {prod?.img && (
-                          <figure className="w-14">
-                            <img
-                              className="w-full object-cover"
-                              src={prod?.img}
-                              alt=""
-                            />
-                          </figure>
-                        )}
-                        <span>{prod?.title}</span>
-                      </td>
-                      <TableData data={prod?.quantity} />
-                      <TableData data={`$${prod?.purchase_price}`} />
-                      <TableData data={`$${prod?.sell_price}`} />
-                      <TableData data={prod?.supplier_id?.name} />
-                      <TableActions
-                        href={`/update-product?id=${prod?.id}`}
-                        deleteHandler={deleteProductHandler}
-                        id={prod?.id}
-                      />
-                    </tr>
-                  ))}
+                {currentProducts?.map((prod) => (
+                  <tr className="border-b last:border-0" key={prod?.id}>
+                    <TableData data={prod?.id} />
+                    <td className="py-3 px-5 text-sm capitalize flex items-center gap-2">
+                      {prod?.img && (
+                        <figure className="w-14">
+                          <img
+                            className="w-full object-cover"
+                            src={prod?.img}
+                            alt=""
+                          />
+                        </figure>
+                      )}
+                      <span>{prod?.title}</span>
+                    </td>
+                    <TableData data={prod?.quantity} />
+                    <TableData data={`$${prod?.purchase_price}`} />
+                    <TableData data={`$${prod?.sell_price}`} />
+                    <TableData data={prod?.supplier_id?.name} />
+                    <TableActions
+                      href={`/update-product?id=${prod?.id}`}
+                      dleteHandler={deleteProductHandler}
+                      id={prod?.id}
+                    />
+                  </tr>
+                ))}
               </tbody>
             </Table>
           )}
+          <div className="flex items-center justify-end gap-3 p-5">
+            <button
+              className="rotate-90 border rounded-full border-gray-400 w-9 h-9 flex items-center justify-center"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <DropdownIcon />
+            </button>
+            {Array.from({ length: totalPage }, (_, idx) => (
+              <button
+                key={idx}
+                className={`border rounded-full w-9 h-9 flex items-center justify-center ${currentPage === idx + 1 ? "bg-linear-gradient text-white font-semibold" : "border-gray-400"}`}
+                onClick={() => goToPage(idx + 1)}
+              >
+                {idx + 1}
+              </button>
+            ))}
+            <button
+              className="-rotate-90 border rounded-full border-gray-400 w-9 h-9 flex items-center justify-center"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPage}
+            >
+              <DropdownIcon />
+            </button>
+          </div>
         </TableWrapper>
         {products?.length === 0 && (
-          <div className="text-center my-8 font-bold text-gray-400 text-xl">No products available.</div>
+          <div className="text-center my-8 font-bold text-gray-400 text-xl">
+            No products available.
+          </div>
         )}
       </Wrapper>
       {state.message && (

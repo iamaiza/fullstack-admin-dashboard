@@ -159,6 +159,7 @@ export const ORDER = gql`
       id
       quantity
       price
+      createdAt
       products {
         product_id {
           id

@@ -129,30 +129,51 @@ const Mutation = {
         data: { deletedAt: new Date() },
       });
       return deletedProduct;
-    } catch (error) {}
+    } catch (error) {
+      return { message: error.message };
+    }
   },
 
   // Orders
   createOrder: async (_, args, { prisma }) => {
     try {
-      const { product_id, quantity } = args.data;
-      console.log(product_id, quantity);
+      const { price, quantity, products } = args.data;
 
-      const product = await prisma.product.findUnique({
-        where: { id: parseInt(product_id) },
-      });
-
-      if (!product) {
-        return { message: "Product not found." };
-      }
-
-      const newOrder = await prisma.order.create({
+      const order = await prisma.order.create({
         data: {
-          product_id: parseInt(product_id),
+          price,
           quantity,
+          products: {
+            create: products.map((item) => ({
+              product: {
+                connect: { id: parseInt(item.product_id) },
+              },
+              quantity: item.quantity.toString(),
+            })),
+          },
+        },
+        include: {
+          products: true,
         },
       });
-      return newOrder;
+
+      for (const item of products) {
+        const product = await prisma.product.findUnique({
+          where: { id: parseInt(item.product_id) },
+        });
+        if (!product) throw new Error("Product not found");
+
+        await prisma.product.update({
+          where: { id: parseInt(item.product_id) },
+          data: {
+            quantity: (
+              parseInt(product.quantity) - parseInt(item.quantity)
+            ).toString(),
+          },
+        });
+      }
+
+      return order;
     } catch (error) {
       return { message: error.message };
     }
@@ -160,19 +181,89 @@ const Mutation = {
   updateOrder: async (_, args, { prisma }) => {
     try {
       const { id, data } = args;
-      const { product_id, quantity } = data;
+      const { products, quantity, price } = data;
 
-      const product = await prisma.product.findUnique({
-        where: { id: parseInt(product_id) },
-      });
-      if (!product) {
-        return { message: "Product not found." };
-      }
-      const updatedOrder = await prisma.order.update({
+      const order = await prisma.order.findUnique({
         where: { id: parseInt(id) },
-        data: { quantity, product_id: parseInt(product_id) },
+        include: {
+          products: true,
+        },
       });
-      return updatedOrder;
+      if (!order) {
+        return { message: "Order not found" };
+      }
+
+      const updateOrder = await prisma.order.update({
+        where: { id: parseInt(id) },
+        data: {
+          quantity,
+          price,
+          price,
+          products: {
+            deleteMany: {},
+            create: products.map((item) => ({
+              product: {
+                connect: { id: parseInt(item.product_id) },
+              },
+              quantity: item.quantity.toString(),
+            })),
+          },
+        },
+        include: {
+          products: true,
+        },
+      });
+      const existingProdMap = new Map();
+      order.products.forEach((item) => {
+        existingProdMap.set(item.product_id, parseInt(item.quantity));
+      });
+
+      await (async () => {
+        for (const item of products) {
+          const productId = parseInt(item.product_id);
+          const newQuantity = parseInt(item.quantity);
+      
+          const product = await prisma.product.findUnique({
+            where: { id: productId },
+          });
+      
+          if (!product) {
+            return { message: "Product not found" };
+          }
+      
+          const existingQuantity = existingProdMap.get(productId) || 0;
+          const quantityDifference = newQuantity - existingQuantity;
+    
+          const updatedQuantity = parseInt(product.quantity) - quantityDifference;
+      
+          await prisma.product.update({
+            where: { id: productId },
+            data: {
+              quantity: updatedQuantity.toString(),
+            },
+          });
+      
+          existingProdMap.delete(productId);
+        }
+      
+        for (const [productId, remainingQuantity] of existingProdMap) {
+          const product = await prisma.product.findUnique({
+            where: { id: productId },
+          });
+      
+          if (product) {
+          
+            await prisma.product.update({
+              where: { id: productId },
+              data: {
+                quantity: (parseInt(product.quantity) + remainingQuantity).toString(),
+              },
+            });
+          }
+        }
+      })();
+
+      return updateOrder;
     } catch (error) {
       return { message: error.message };
     }
