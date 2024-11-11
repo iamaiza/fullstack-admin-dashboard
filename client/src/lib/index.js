@@ -8,24 +8,21 @@ export const sidebarLinks = [
     title: "products",
     src: "/products",
     icon: "assets/product-icon.svg",
+    relatedPaths: ["/products", "/add-product", "/update-product"],
   },
   {
     title: "suppliers",
     src: "/suppliers",
     icon: "assets/supplier-icon.svg",
+    relatedPaths: ["/suppliers", "/add-supplier", "/update-supplier"],
   },
   {
     title: "orders",
     src: "/orders",
     icon: "assets/order-icon.svg",
+    relatedPaths: ["/orders", "/add-order", "/update-order"],
   },
 ];
-
-export const routeCategories = {
-  products: ["/products", "/add-product", "/update-product"],
-  suppliers: ["/suppliers", "/add-supplier", "/update-supplier"],
-  orders: ["/orders", "/add-order", "/update-order", "/orders/products"],
-};
 
 export const productDeletionSuccess = "Product deleted successfully";
 export const fieldsError = {

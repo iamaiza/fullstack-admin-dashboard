@@ -33,6 +33,10 @@ input {
   @apply stroke-blue-500;
 }
 
+.active {
+  @apply bg-white shadow-lg max-[1200px]:shadow-none
+}
+
 .notification {
   /* border-left: 2px solid #ef4444; */
   animation: slide-in 0.2s linear forwards;

@@ -1,43 +1,15 @@
 "use client";
 
-import { routeCategories, sidebarLinks } from "../lib";
-import { closeSidebarHandler } from "../store/sidebarSlice";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { sidebarLinks } from "../lib";
+import { useSelector } from "react-redux";
+import { NavLink, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
-  const [isActive, setIsActive] = useState("dashboard");
   const isOpen = useSelector((state) => state.sidebar.isOpen);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
   const location = useLocation();
-  const pathname = location?.pathname;
-
-  const updateLinkInLS = (id) => {
-    setIsActive(id);
-    localStorage.setItem("active-link", JSON.stringify({ activeLink: id }));
-  };
-  useEffect(() => {
-    const storedLink = JSON.parse(localStorage.getItem("active-link"));
-    const storedCategory = storedLink ? storedLink.activeLink : "dashboard";
-    const matchCategory = (path) => {
-      for (const [category, paths] of Object.entries(routeCategories)) {
-        if (paths.some((p) => path.startsWith(p))) {
-          return category;
-        }
-      }
-      return "dashboard";
-    };
-    const activeLink = matchCategory(pathname) || storedCategory;
-    updateLinkInLS(activeLink);
-  }, [pathname]);
-
-  const setActiveLinkHandler = (id) => {
-    dispatch(closeSidebarHandler());
-    setIsActive(id);
-    updateLinkInLS(id);
-    navigate(id === "dashboard" ? "/" : `/${id}`);
+  const isActive = (relatedPaths) => {
+    // Check if the current path is in the relatedPaths array
+    return relatedPaths?.some((path) => location.pathname.startsWith(path));
   };
 
   return (
@@ -64,32 +36,20 @@ const Sidebar = () => {
         <div className="text-[13px] uppercase font-bold text-gray-400 mb-3 px-3 text-left ml-2">
           pages
         </div>
-        <ul className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           {sidebarLinks.slice(0, 4).map((link) => (
-            <li
-              className={`py-2.5 px-7 rounded-lg link ${
-                isActive === link.title
-                  ? "bg-white shadow-lg max-[1200px]:shadow-none"
-                  : ""
-              }`}
-              onClick={() => setActiveLinkHandler(link.title)}
-              key={link.title}
-            >
-              <Link
-                key={link.title}
-                to={link.src}
-                className="flex items-center gap-3 w-full h-full"
-              >
-                <figure className="w-8 h-8 bg-black rounded-lg flex items-center justify-center bg-linear-gradient">
-                  <img src={link?.icon} alt="" />
-                </figure>
-                <span className="text-sm capitalize text-gray-500 font-semibold">
-                  {link.title}
-                </span>
-              </Link>
-            </li>
+            <NavLink to={link.src} key={link.title} className={`flex items-center gap-3 w-full h-full py-2.5 px-7 rounded-lg ${
+              isActive(link.relatedPaths) ? 'active' : ''
+            }`}>
+              <figure className="w-8 h-8 bg-black rounded-lg flex items-center justify-center bg-linear-gradient">
+                <img src={link?.icon} alt="" />
+              </figure>
+              <span className="text-sm capitalize text-gray-500 font-semibold">
+                {link.title}
+              </span>
+            </NavLink>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );
