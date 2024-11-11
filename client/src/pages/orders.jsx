@@ -78,7 +78,7 @@ const Orders = () => {
   };
 
   return (
-    <div className="px-12 max-[1290px]:px-7">
+    <div className="px-12 max-[1290px]:px-7 max-h-screen overflow-auto pb-20">
       <TitleMenu pageType="pages" pageName={path} />
       <Wrapper>
         <AddTable

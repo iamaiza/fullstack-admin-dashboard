@@ -1,78 +1,59 @@
 "use client";
 
 import { useLocation, useNavigate } from "react-router-dom";
-import { Form, FormWrapper, Input, Select } from "../components/Form";
+import { FormWrapper } from "../components/Form";
 import TitleMenu from "../components/title-menu";
-import { changeEventHandler, clearStateHandler } from "../store/orderSlice";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { orderErrors } from "../components/Errors";
-import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_ORDER, ORDERS, PRODUCTS } from "../query";
+import { useSelector } from "react-redux";
+import { useMutation } from "@apollo/client";
+import { CREATE_ORDER, ORDERS } from "../query";
+import OrderUI from "../components/OrderUI";
 
 const AddOrder = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
-  const { data } = useQuery(PRODUCTS);
-  const [products, setProducts] = useState([]);
-
-  const pathname = location?.pathname;
-  const path = pathname.slice(1);
-
-  const { quantity, product } = useSelector((state) => state.order);
-  const [message, setMessage] = useState("");
   const [createOrderMutation] = useMutation(CREATE_ORDER, {
     refetchQueries: [{ query: ORDERS }],
   });
 
-  useEffect(() => {
-    if (data?.products) {
-      setProducts(data.products);
-    }
-    // getAllProducts();
-    dispatch(clearStateHandler());
-  }, [data?.products]);
+  const pathname = location?.pathname;
+  const path = pathname.slice(1);
 
-  // const getAllProducts = async () => {
-  //   const res = await axios.get("/api/products_list");
-  //   const data = await res.data;
+  const { cart, quantity, total_price } = useSelector(
+    (state) => state.order
+  );
 
-  //   if (res.status === 200) {
-  //     setProducts(data);
+  // useEffect(() => {
+  //   const cartData = Cookies.get("cart");
+  //   if (!cartData) {
+  //     dispatch(clearCart());
   //   }
-  // };
-
-  const changeInputHandler = (fieldname, value) => {
-    dispatch(changeEventHandler({ name: fieldname, value }));
-  };
+  // }, []);
 
   const addOrderHandler = async (e) => {
     e.preventDefault();
     try {
-      const error = orderErrors({ quantity, product, setMessage });
-      if (error) return;
+      if (total_price === "" || quantity === "" || cart.length <= 0) {
+        alert("Please select a product for order.");
+        return;
+      }
 
-      console.log(quantity, product);
-      
-      const { data } = await createOrderMutation({
+      const createOrder = {
+        price: total_price.toString(),
+        quantity: quantity.toString(),
+        products: cart.map((item) => ({
+          product_id: item.id,
+          quantity: item.quantity.toString(),
+        })),
+      };
+
+
+      await createOrderMutation({
         variables: {
-          data: {
-            product_id: product,
-            quantity,
-          },
+          data: createOrder,
         },
       });
-      // console.log(data);
+      // Cookies.remove("cart");
       navigate("/orders");
-      // const res = await axios.post("/api/add-order", {
-      //   quantity,
-      //   product,
-      // });
-      // if (res.status === 200) {
-      //
-      //   // dispatch(clearStateHandler());
-      // }
     } catch (error) {
       console.log(error);
     }
@@ -81,33 +62,25 @@ const AddOrder = () => {
   return (
     <FormWrapper>
       <TitleMenu pageType="orders" pageName={path} href="/orders" />
-      <Form headingText="add order" submitHandler={addOrderHandler}>
-        <Select
-          name="product"
-          value={product}
-          changeInputHandler={changeInputHandler}
+      <div className="px-5 flex gap-5">
+        <div className="mt-12 flex-1">
+            <h2 className="capitalize font-semibold text-xl text-gray-500 mb-6">
+              shopping cart
+            </h2>
+            <OrderUI cart={cart} quantity={quantity} total_price={total_price} createdAt={new Date().toISOString()} />
+        </div>
+      </div>
+      <div className="w-full absolute bottom-0 py-6 px-5 flex items-center justify-end gap-2">
+        <button className="bg-[#ecedee] py-2 px-5 w-32 rounded-md">
+          Cancel
+        </button>
+        <button
+          className="bg-linear-gradient text-white py-2 px-5 rounded-md"
+          onClick={addOrderHandler}
         >
-          <option selected hidden>
-            Product
-          </option>
-          {products?.map((prod) => (
-            <option key={prod?.id} value={prod?.id}>
-              {prod?.title}
-            </option>
-          ))}
-        </Select>
-        <Input
-          placeholder="Quantity"
-          name="quantity"
-          value={quantity}
-          changeInputHandler={changeInputHandler}
-        />
-        {message && (
-          <div className="text-red-500 my-2 text-sm font-semibold">
-            {message}
-          </div>
-        )}
-      </Form>
+          Create Order
+        </button>
+      </div>
     </FormWrapper>
   );
 };

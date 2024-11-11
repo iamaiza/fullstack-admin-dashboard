@@ -55,10 +55,18 @@ type Order {
     products: [OrderedItem!]!
 }
 
+type OrderedProduct {
+    id: ID!
+    title: String!
+    quantity: String!
+    sell_price: String!
+    img: String
+}
+
 type OrderedItem {
     id: ID!
     order_id: Order!
-    product_id: Product!
+    product_id: OrderedProduct!
     quantity: String!
 }
 
