@@ -1,15 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Form, FormWrapper, Input, Select } from "../components/Form";
+import { FormWrapper } from "../components/Form";
 import TitleMenu from "../components/title-menu";
-import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  changeEventHandler,
-  clearStateHandler,
-  setOrderData,
-} from "../store/orderSlice";
 import { useMutation, useQuery } from "@apollo/client";
-import { ORDER, PRODUCTS, UPDATE_ORDER } from "../query";
+import { ORDER, UPDATE_ORDER } from "../query";
+import { clearCart, setValues } from "../store/orderSlice";
+import { useEffect } from "react";
+import Cookies from "js-cookie";
+import OrderUI from "../components/OrderUI";
 
 const UpdateOrder = () => {
   const location = useLocation();
@@ -20,53 +18,48 @@ const UpdateOrder = () => {
   const path = pathname.slice(1);
   const search = new URLSearchParams(location.search);
   const order_id = search.get("id");
-  const { data } = useQuery(PRODUCTS);
-  const [products, setProducts] = useState([]);
-  const { quantity, product } = useSelector((state) => state.order);
-
-  const { data: orderData, refetch } = useQuery(ORDER, {
+  const { data } = useQuery(ORDER, {
     variables: {
       id: order_id,
     },
   });
-  const [updateOrderMutation] = useMutation(UPDATE_ORDER);
 
+  const [updateOrderMutation] = useMutation(UPDATE_ORDER);
+  const { cart, quantity, total_price } = useSelector((state) => state.order);
   useEffect(() => {
-    if (orderData?.order) {
+    if (data?.order) {
       dispatch(
-        setOrderData({
-          ...orderData.order,
-          product_id: orderData.order.product_id.id,
+        setValues({
+          totalQuantity: data.order?.quantity,
+          totalPrice: data.order?.price,
+          products: data.order?.products?.map((item) => item?.product_id),
         })
       );
     }
-    if (data?.products) {
-      setProducts(data.products);
-    }
-  }, [orderData?.order, data?.products]);
+  }, [data?.order, dispatch]);
 
-  const changeInputHandler = (fieldname, value) => {
-    dispatch(changeEventHandler({ name: fieldname, value }));
-  };
+  console.log(data?.order);
 
-  const updateOrderHandler = async (e) => {
-    e.preventDefault();
+  const updateOrderHandler = async () => {
     try {
-      const { data } = await updateOrderMutation({
+      await updateOrderMutation({
         variables: {
           id: order_id,
           data: {
-            quantity,
-            product_id: product,
+            quantity: quantity.toString(),
+            price: total_price.toString(),
+            products: cart.map((item) => ({
+              product_id: item.id,
+              quantity: item.quantity.toString(),
+            })),
           },
         },
       });
-      console.log(data);
 
-      dispatch(clearStateHandler());
-      await refetch();
-      
-      navigate("/orders")
+      navigate("/orders");
+      // dispatch(clearCart());
+      // Cookies.remove("update-cart");
+      // Cookies.remove("cart");
     } catch (error) {
       console.log(error);
     }
@@ -75,45 +68,25 @@ const UpdateOrder = () => {
   return (
     <FormWrapper>
       <TitleMenu pageType="orders" pageName={path} href="/orders" />
-      <Form
-        headingText="update order"
-        update={true}
-        submitHandler={updateOrderHandler}
-      >
-        <div className="flex-col items-center gap-5 max-sm:flex-col">
-          <div className="flex-1 max-sm:w-full">
-            <label className="block mb-1.5 capitalize font-semibold" htmlFor="">
-              product
-            </label>
-            <Select
-              name="product"
-              value={product}
-              changeInputHandler={changeInputHandler}
-            >
-              <option selected hidden>
-                Product
-              </option>
-              {products?.map((prod) => (
-                <option key={prod.id} value={prod.id}>
-                  {prod.title}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="flex-1 max-sm:w-full">
-            <label className="block mb-1.5 capitalize font-semibold" htmlFor="">
-              quantity
-            </label>
-            <Input
-              placeholder="Quantity"
-              name="quantity"
-              value={quantity}
-              changeInputHandler={changeInputHandler}
-            />
-          </div>
-        </div>
-      </Form>
-      <div className="h-20" />
+      <div className="mt-5 mx-5">
+        <OrderUI
+          createdAt={data?.order?.createdAt}
+          cart={cart}
+          quantity={quantity}
+          total_price={total_price}
+        />
+      </div>
+      <div className="w-full absolute bottom-0 py-6 px-5 flex items-center justify-end gap-2">
+        <button className="bg-[#ecedee] py-2 px-5 w-32 rounded-md">
+          Cancel
+        </button>
+        <button
+          className="bg-linear-gradient text-white py-2 px-5 rounded-md"
+          onClick={updateOrderHandler}
+        >
+          Update Order
+        </button>
+      </div>
     </FormWrapper>
   );
 };
