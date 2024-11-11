@@ -35,7 +35,7 @@ export const AddTable = (props) => {
 };
 
 export const TableWrapper = ({ children }) => {
-  return <div className="overflow-auto max-h-[22rem] h-full">{children}</div>;
+  return <div>{children}</div>;
 };
 
 export const Table = ({ children }) => {
