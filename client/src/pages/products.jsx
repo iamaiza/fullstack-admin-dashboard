@@ -162,31 +162,37 @@ const Products = () => {
               </tbody>
             </Table>
           )}
-          <div className="flex items-center justify-end gap-3 p-5">
-            <button
-              className="rotate-90 border rounded-full border-gray-400 w-9 h-9 flex items-center justify-center"
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              <DropdownIcon />
-            </button>
-            {Array.from({ length: totalPage }, (_, idx) => (
+          {products.length > 0 && (
+            <div className="flex items-center justify-end gap-3 p-5">
               <button
-                key={idx}
-                className={`border rounded-full w-9 h-9 flex items-center justify-center ${currentPage === idx + 1 ? "bg-linear-gradient text-white font-semibold" : "border-gray-400"}`}
-                onClick={() => goToPage(idx + 1)}
+                className="rotate-90 border rounded-full border-gray-400 w-9 h-9 flex items-center justify-center"
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
               >
-                {idx + 1}
+                <DropdownIcon />
               </button>
-            ))}
-            <button
-              className="-rotate-90 border rounded-full border-gray-400 w-9 h-9 flex items-center justify-center"
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPage}
-            >
-              <DropdownIcon />
-            </button>
-          </div>
+              {Array.from({ length: totalPage }, (_, idx) => (
+                <button
+                  key={idx}
+                  className={`border rounded-full w-9 h-9 flex items-center justify-center ${
+                    currentPage === idx + 1
+                      ? "bg-linear-gradient text-white font-semibold"
+                      : "border-gray-400"
+                  }`}
+                  onClick={() => goToPage(idx + 1)}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+              <button
+                className="-rotate-90 border rounded-full border-gray-400 w-9 h-9 flex items-center justify-center"
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPage}
+              >
+                <DropdownIcon />
+              </button>
+            </div>
+          )}
         </TableWrapper>
         {products?.length === 0 && (
           <div className="text-center my-8 font-bold text-gray-400 text-xl">
