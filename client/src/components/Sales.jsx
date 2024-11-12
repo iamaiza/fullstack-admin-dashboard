@@ -117,10 +117,10 @@ const Sales = () => {
   }, [activeData, weeklyData, monthlyData]);
 
   return (
-    <div className="max-h-96 mt-16 mb-10">
+    <div className="max-h-96 mt-24 mb-10">
       <div className="max-w-[760px] w-full bg-slate-200 relative">
         <div
-          className="w-1/3 bg-white flex flex-col gap-3 py-5 absolute right-1 -top-5"
+          className="w-1/3 bg-white flex flex-col gap-3 py-5 absolute right-0 -top-10"
           id="dropdown"
           onClick={() => setShow(!show)}
         >
@@ -167,8 +167,9 @@ const Sales = () => {
         </div>
       </div>
 
-      {chartData && (
+      {chartData ? (
         <Line
+          className="w-full"
           data={chartData}
           options={{
             responsive: true,
@@ -186,6 +187,9 @@ const Sales = () => {
                   display: true,
                   text: "Order Time",
                 },
+                grid: {
+                  display: false,
+                },
               },
               y: {
                 title: {
@@ -194,6 +198,31 @@ const Sales = () => {
                 },
               },
             },
+          }}
+        />
+      ) : (
+        <Line
+          data={{
+            labels: [],
+            datasets: [],
+          }}
+          options={{
+            responsive: true,
+            legend: {
+              display: false,
+            },
+            title: {
+              display: true,
+              text: "No data available"
+            },
+            scales: {
+              x: {
+                display: false,
+              },
+              y: {
+                display: false,
+              }
+            }
           }}
         />
       )}
